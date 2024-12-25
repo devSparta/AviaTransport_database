@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviacompanies</title>
+</head>
+<body>
+    <h1>Aviacompanies</h1>
+    <a href="/aviacompanies/add">Add New Aviacompany</a>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Planes Amount</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for aviacompany in aviacompanies %}
+            <tr>
+                <td>{{ aviacompany.id }}</td>
+                <td>{{ aviacompany.name }}</td>
+                <td>{{ aviacompany.planes_amount }}</td>
+                <td>
+                    <a href="/aviacompanies/edit/{{ aviacompany.id }}">Edit</a>
+                    <a href="/aviacompanies/delete/{{ aviacompany.id }}" onclick="return confirm('Are you sure you want to delete this aviacompany?');">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
