@@ -19,14 +19,14 @@
             </tr>
         </thead>
         <tbody>
-            {% for client in clients %}
+            {% for cl in client %}
             <tr>
-                <td>{{ client.id }}</td>
-                <td>{{ client.name }}</td>
-                <td>{{ client.phone_number }}</td>
-                <td>{{ client.flight_hours }}</td>
-                <td>{{ client.luggage }}</td>
-                <td>{{ client.aviacompany.id }}</td>
+                <td>{{ cl.id }}</td>
+                <td>{{ cl.name }}</td>
+                <td>{{ cl.phone_number }}</td>
+                <td>{{ cl.flight_hours }}</td>
+                <td>{{ cl.luggage }}</td>
+                <td>{{ cl.aviacom_id.id }}</td>
             </tr>
             {% endfor %}
         </tbody>

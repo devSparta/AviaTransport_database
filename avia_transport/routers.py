@@ -34,4 +34,4 @@ def get_airplanes():
 @app.route('/clients')
 def get_clients():
     clients = Client.select()
-    return render_template("clients.html", clients=clients)
+    return render_template("client.html", client=clients)

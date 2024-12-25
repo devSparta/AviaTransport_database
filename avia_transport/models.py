@@ -37,7 +37,7 @@ class Client(BaseModel):
     phone_number = CharField(max_length=20, null=False)
     flight_hours = IntegerField(null=True)
     luggage = IntegerField(null=True)
-    aviacompany_id = ForeignKeyField(Aviacompany, backref='clients', on_delete='CASCADE')
+    aviacom_id = ForeignKeyField(Aviacompany, backref='client', on_delete='CASCADE')
 
     class Meta:
         constraints = [
