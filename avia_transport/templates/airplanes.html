@@ -7,6 +7,8 @@
 </head>
 <body>
     <h1>Airplanes</h1>
+
+    <!-- Таблица с самолетами -->
     <table border="1">
         <thead>
             <tr>
@@ -16,6 +18,7 @@
                 <th>Luggage Capacity</th>
                 <th>Aviacompany ID</th>
                 <th>Flight ID</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -25,11 +28,43 @@
                 <td>{{ airplane.business_seats }}</td>
                 <td>{{ airplane.econom_seats }}</td>
                 <td>{{ airplane.luggage_capacity }}</td>
-                <td>{{ airplane.aviacompany_id.id }}</td>
-                <td>{{ airplane.flight_id.id }}</td>
+                <td>{{ airplane.aviacompany_id }}</td>
+                <td>{{ airplane.flight_id }}</td>
+                <td>
+                    <form action="/delete_airplane/{{ airplane.id }}" method="POST" style="display:inline;">
+                        <button type="submit">Delete</button>
+                    </form>
+                    <form action="/update_airplane/{{ airplane.id }}" method="GET" style="display:inline;">
+                        <button type="submit">Edit</button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- Форма для добавления нового самолета -->
+    <h2>Add New Airplane</h2>
+    <form action="/add_airplane" method="POST">
+        <label for="id">Airplane ID:</label>
+        <input type="number" name="id" id="id" placeholder="Airplane ID (optional)" min="1">
+
+        <label for="business_seats">Business Seats:</label>
+        <input type="number" name="business_seats" id="business_seats" required>
+
+        <label for="econom_seats">Economy Seats:</label>
+        <input type="number" name="econom_seats" id="econom_seats" required>
+
+        <label for="luggage_capacity">Luggage Capacity:</label>
+        <input type="number" name="luggage_capacity" id="luggage_capacity" required>
+
+        <label for="aviacompany_id">Aviacompany ID:</label>
+        <input type="number" name="aviacompany_id" id="aviacompany_id" required>
+
+        <label for="flight_id">Flight ID:</label>
+        <input type="number" name="flight_id" id="flight_id" required>
+
+        <button type="submit">Add</button>
+    </form>
 </body>
 </html>

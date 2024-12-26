@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Airplane</title>
+</head>
+<body>
+    <h1>Update Airplane Information</h1>
+    <form action="/update_airplane/{{ airplane.id }}" method="POST">
+        <label for="business_seats">Business Seats:</label>
+        <input type="number" name="business_seats" id="business_seats" value="{{ airplane.business_seats }}" required>
+
+        <label for="econom_seats">Economy Seats:</label>
+        <input type="number" name="econom_seats" id="econom_seats" value="{{ airplane.econom_seats }}" required>
+
+        <label for="luggage_capacity">Luggage Capacity:</label>
+        <input type="number" name="luggage_capacity" id="luggage_capacity" value="{{ airplane.luggage_capacity }}" required>
+
+        <label for="aviacompany_id">Aviacompany ID:</label>
+        <input type="number" name="aviacompany_id" id="aviacompany_id" value="{{ airplane.aviacompany_id }}" required>
+
+        <label for="flight_id">Flight ID:</label>
+        <input type="number" name="flight_id" id="flight_id" value="{{ airplane.flight_id }}" required>
+
+        <button type="submit">Update</button>
+    </form>
+
+    <br>
+    <a href="/airplanes">Back to Airplanes List</a>
+</body>
+</html>

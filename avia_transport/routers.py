@@ -3,6 +3,7 @@ from models import *
 from flask import render_template
 from flask import request
 from flask import redirect
+from datetime import datetime
 
 
 @app.route('/')
@@ -96,3 +97,175 @@ def update_client(client_id):
         client.save()  # Сохраняем изменения в базе данных
         return redirect('/clients')  # Перенаправляем на страницу со списком клиентов
 
+@app.route('/add_flight', methods=['POST'])
+def add_flight():
+    id = request.form['id']
+    depature_point = request.form['depature_point']
+    arrival_point = request.form['arrival_point']
+    depature_time = request.form['depature_time']
+    arrival_time = request.form['arrival_time']
+
+    Flight.create(
+        id=id,
+        depature_point=depature_point,
+        arrival_point=arrival_point,
+        depature_time=depature_time,
+        arrival_time=arrival_time
+    )
+
+    return redirect('/flights')
+
+@app.route('/delete_flight/<int:flight_id>', methods=['POST'])
+def delete_flight(flight_id):
+    flight = Flight.get(Flight.id == flight_id)
+    flight.delete_instance()
+    return redirect('/flights')
+
+@app.route('/update_flight/<int:flight_id>', methods=['GET', 'POST'])
+def update_flight(flight_id):
+    flight = Flight.get(Flight.id == flight_id)
+
+    if request.method == 'GET':
+        return render_template('update_flight.html', flight=flight)
+
+    else:
+        flight.depature_point = request.form['depature_point']
+        flight.arrival_point = request.form['arrival_point']
+        flight.depature_time = request.form['depature_time']
+        flight.arrival_time = request.form['arrival_time']
+        flight.save()
+        return redirect('/flights')
+
+
+@app.route('/delete_aviacompany/<int:aviacompany_id>', methods=['POST'])
+def delete_aviacompany(aviacompany_id):
+    company = Aviacompany.get(Aviacompany.id == aviacompany_id)
+    company.delete_instance()
+    return redirect('/aviacompanies')
+
+@app.route('/update_aviacompany/<int:aviacompany_id>', methods=['GET', 'POST'])
+def update_aviacompany(aviacompany_id):
+    company = Aviacompany.get(Aviacompany.id == aviacompany_id)
+
+    if request.method == 'GET':
+        return render_template('update_aviacompany.html', company=company)
+
+    else:
+        company.name = request.form['name']
+        company.planes_amount = request.form['planes_amount']
+        company.save()
+        return redirect('/aviacompanies')
+
+@app.route('/add_aviacompany', methods=['POST'])
+def add_aviacompany():
+    id = request.form['id']
+    name = request.form['name']
+    planes_amount = request.form['planes_amount']
+
+    # Создаем новую авиакомпанию
+    Aviacompany.create(
+        id=id,
+        name=name,
+        planes_amount=planes_amount
+    )
+
+    return redirect('/aviacompanies')
+
+@app.route('/add_ticket', methods=['POST'])
+def add_ticket():
+    id = request.form['id']
+    cost = request.form['cost']
+    landing_class = request.form['landing_class']
+    flight_id = request.form['flight_id']
+
+    # Проверка, существует ли рейс с таким id
+    try:
+        flight = Flight.get(Flight.id == flight_id)
+    except Flight.DoesNotExist:
+        return f"Flight with id {flight_id} does not exist!", 400
+
+    # Создание нового билета
+    Ticket.create(
+        id=id,
+        cost=cost,
+        landing_class=landing_class,
+        flight_id=flight_id
+    )
+
+    return redirect('/tickets')
+
+@app.route('/update_ticket/<int:ticket_id>', methods=['GET', 'POST'])
+def update_ticket(ticket_id):
+    ticket = Ticket.get(Ticket.id == ticket_id)
+
+    if request.method == 'GET':  # Если GET-запрос, показываем форму с текущими данными
+        flights = Flight.select()  # Список всех рейсов для выбора
+        return render_template('update_ticket.html', ticket=ticket, flights=flights)
+
+    else:  # Если POST-запрос, обновляем данные билета
+        ticket.cost = request.form['cost']
+        ticket.landing_class = request.form['landing_class']
+        ticket.flight_id = request.form['flight_id']
+
+        # Сохраняем изменения
+        ticket.save()
+
+        return redirect('/tickets')  # Перенаправляем на страницу со списком билетов
+
+@app.route('/delete_ticket/<int:ticket_id>', methods=['POST'])
+def delete_ticket(ticket_id):
+    ticket = Ticket.get(Ticket.id == ticket_id)
+    ticket.delete_instance()  # Удаление билета
+    return redirect('/tickets')
+
+@app.route('/add_airplane', methods=['POST'])
+def add_airplane():
+    # Получаем данные из формы
+    id = request.form['id']
+    business_seats = request.form['business_seats']
+    econom_seats = request.form['econom_seats']
+    luggage_capacity = request.form['luggage_capacity']
+    aviacompany_id = request.form['aviacompany_id']
+    flight_id = request.form['flight_id']
+
+    # Создаем новый самолет
+    Airplane.create(
+        id=id,
+        business_seats=business_seats,
+        econom_seats=econom_seats,
+        luggage_capacity=luggage_capacity,
+        aviacompany_id=aviacompany_id,
+        flight_id=flight_id
+    )
+
+    # Перенаправляем на страницу со всеми самолетами
+    return redirect('/airplanes')
+
+@app.route('/delete_airplane/<int:airplane_id>', methods=['POST'])
+def delete_airplane(airplane_id):
+    # Получаем самолет по ID
+    airplane = Airplane.get(Airplane.id == airplane_id)
+
+    # Удаляем самолет
+    airplane.delete_instance()
+
+    # Перенаправляем на страницу со всеми самолетами
+    return redirect('/airplanes')
+
+@app.route('/update_airplane/<int:airplane_id>', methods=['GET', 'POST'])
+def update_airplane(airplane_id):
+    airplane = Airplane.get(Airplane.id == airplane_id)  # Получаем самолет по ID
+
+    if request.method == 'GET':  # Если GET-запрос, показываем форму с текущими данными самолета
+        return render_template('update_airplane.html', airplane=airplane)
+
+    else:  # Если POST-запрос, обновляем данные самолета
+        airplane.business_seats = request.form['business_seats']
+        airplane.econom_seats = request.form['econom_seats']
+        airplane.luggage_capacity = request.form['luggage_capacity']
+        airplane.aviacompany_id = request.form['aviacompany_id']
+        airplane.flight_id = request.form['flight_id']
+        airplane.save()  # Сохраняем изменения в базе данных
+
+        # Перенаправляем на страницу со всеми самолетами
+        return redirect('/airplanes')

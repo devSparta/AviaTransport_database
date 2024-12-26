@@ -11,10 +11,11 @@
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Depature Point</th>
+                <th>Departure Point</th>
                 <th>Arrival Point</th>
-                <th>Depature Time</th>
+                <th>Departure Time</th>
                 <th>Arrival Time</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -25,9 +26,38 @@
                 <td>{{ flight.arrival_point }}</td>
                 <td>{{ flight.depature_time }}</td>
                 <td>{{ flight.arrival_time }}</td>
+                <td>
+                    <form action="/delete_flight/{{ flight.id }}" method="POST" style="display:inline;">
+                        <button type="submit">Delete</button>
+                    </form>
+                    <form action="/update_flight/{{ flight.id }}" method="GET" style="display:inline;">
+                        <button type="submit">Edit</button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <h2>Add New Flight</h2>
+<form action="/add_flight" method="POST">
+    <label for="id">Flight ID:</label>
+    <input type="number" name="id" id="id" placeholder="Flight ID (optional)" min="1">
+
+    <label for="depature_point">Departure Point (IATA):</label>
+    <input type="text" name="depature_point" id="depature_point" required>
+
+    <label for="arrival_point">Arrival Point (IATA):</label>
+    <input type="text" name="arrival_point" id="arrival_point" required>
+
+    <label for="depature_time">Departure Time:</label>
+    <input type="datetime-local" name="depature_time" id="depature_time" required>
+
+    <label for="arrival_time">Arrival Time:</label>
+    <input type="datetime-local" name="arrival_time" id="arrival_time" required>
+
+    <button type="submit">Add</button>
+</form>
+
 </body>
 </html>

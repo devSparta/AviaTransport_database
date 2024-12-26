@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Flight</title>
+</head>
+<body>
+    <h1>Update Flight</h1>
+    <form action="/update_flight/{{ flight.id }}" method="POST">
+        <label for="id">Flight ID:</label>
+        <input type="number" name="id" id="id" value="{{ flight.id }}" readonly>
+
+        <label for="depature_point">Departure Point (IATA):</label>
+        <input type="text" name="depature_point" id="depature_point" value="{{ flight.depature_point }}" required>
+
+        <label for="arrival_point">Arrival Point (IATA):</label>
+        <input type="text" name="arrival_point" id="arrival_point" value="{{ flight.arrival_point }}" required>
+
+        <label for="depature_time">Departure Time:</label>
+        <input type="datetime-local" name="depature_time" id="depature_time" value="{{ flight.depature_time }}" required>
+
+        <label for="arrival_time">Arrival Time:</label>
+        <input type="datetime-local" name="arrival_time" id="arrival_time" value="{{ flight.arrival_time }}" required>
+
+        <button type="submit">Update</button>
+    </form>
+</body>
+</html>

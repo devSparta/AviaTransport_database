@@ -14,6 +14,7 @@
                 <th>Cost</th>
                 <th>Landing Class</th>
                 <th>Flight ID</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -22,10 +23,35 @@
                 <td>{{ ticket.id }}</td>
                 <td>{{ ticket.cost }}</td>
                 <td>{{ ticket.landing_class }}</td>
-                <td>{{ ticket.flight_id.id }}</td>
+                <td>{{ ticket.flight_id }}</td>
+                <td>
+                    <form action="/delete_ticket/{{ ticket.id }}" method="POST" style="display:inline;">
+                        <button type="submit">Delete</button>
+                    </form>
+                    <form action="/update_ticket/{{ ticket.id }}" method="GET" style="display:inline;">
+                        <button type="submit">Edit</button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <h2>Add New Ticket</h2>
+    <form action="/add_ticket" method="POST">
+        <label for="id">Ticket ID:</label>
+        <input type="number" name="id" id="id" placeholder="Ticket ID (optional)" min="1">
+
+        <label for="cost">Cost:</label>
+        <input type="number" name="cost" id="cost" required>
+
+        <label for="landing_class">Landing Class:</label>
+        <input type="text" name="landing_class" id="landing_class" required>
+
+        <label for="flight_id">Flight ID:</label>
+        <input type="number" name="flight_id" id="flight_id" required>
+
+        <button type="submit">Add</button>
+    </form>
 </body>
 </html>

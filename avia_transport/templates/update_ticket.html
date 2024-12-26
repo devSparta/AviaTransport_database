@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Ticket</title>
+</head>
+<body>
+    <h1>Update Ticket</h1>
+
+    <form action="/update_ticket/{{ ticket.id }}" method="POST">
+        <label for="id">Ticket ID:</label>
+        <input type="number" name="id" id="id" value="{{ ticket.id }}" readonly>
+
+        <label for="cost">Cost:</label>
+        <input type="number" name="cost" id="cost" value="{{ ticket.cost }}" required>
+
+        <label for="landing_class">Landing Class:</label>
+        <input type="text" name="landing_class" id="landing_class" value="{{ ticket.landing_class }}" required>
+
+        <label for="flight_id">Flight ID:</label>
+        <input type="number" name="flight_id" id="flight_id" value="{{ ticket.flight_id }}" required>
+
+        <button type="submit">Update</button>
+    </form>
+
+    <br>
+    <a href="/tickets">Back to Tickets</a>
+</body>
+</html>

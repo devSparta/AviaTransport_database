@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Aviacompany</title>
+</head>
+<body>
+    <h1>Update Aviacompany</h1>
+
+    <form action="/update_aviacompany/{{ company.id }}" method="POST">
+        <label for="id">Company ID:</label>
+        <input type="number" name="id" id="id" value="{{ company.id }}" readonly>
+
+        <label for="name">Company Name:</label>
+        <input type="text" name="name" id="name" value="{{ company.name }}" required>
+
+        <label for="planes_amount">Number of Planes:</label>
+        <input type="number" name="planes_amount" id="planes_amount" value="{{ company.planes_amount }}" required>
+
+        <button type="submit">Update</button>
+    </form>
+
+    <br>
+    <a href="/aviacompanies">Back to Aviacompanies</a>
+</body>
+</html>
