@@ -1,5 +1,6 @@
 from peewee import *
 from config import db  # Предполагается, что db настроен в config.py
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class BaseModel(Model):
     class Meta:
@@ -44,3 +45,17 @@ class Client(BaseModel):
             Check('substr(phone_number, 1, 2) = "+7"'),  # Номер должен начинаться с "+7"
             Check('right(phone_number, 10) ~ \'^[0-9]+$\''),  # Последние 10 символов должны быть цифрами
         ]
+
+# Модель пользователя
+class Users(BaseModel):
+    username = CharField(unique=True)
+    password = CharField()
+    role = IntegerField(null=True)  # 1 - admin, 2 - user
+
+    def set_password(self, password):
+        """Метод для установки пароля с хешированием"""
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password):
+        """Метод для проверки пароля"""
+        return check_password_hash(self.password, password)

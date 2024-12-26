@@ -1,15 +1,68 @@
 from config import *
 from models import *
-from flask import render_template
-from flask import request
-from flask import redirect
-from datetime import datetime
-
+from flask import Flask, render_template, request
+from peewee import DoesNotExist
+from functools import wraps
+from flask import session, redirect, url_for
 
 @app.route('/')
 def index():
     return render_template("index.html")
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        role = request.form.get('role', 2)  # Default role is 'user'
 
+        # Проверка на уникальность username
+        if Users.select().where(Users.username == username).exists():
+            return "Username already exists", 400
+
+        # Создание пользователя с хешированным паролем
+        user = Users(username=username, role=role)
+        user.set_password(password)
+        user.save()
+
+        return redirect('/login')  # После регистрации редирект на страницу логина
+
+    return render_template('register.html')
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        # Поиск пользователя по имени
+        user = Users.get_or_none(Users.username == username)
+
+        # Если пользователь найден и пароль совпадает
+        if user and user.check_password(password):
+            session['user_id'] = user.id  # Сохраняем ID пользователя в сессии
+            session['role'] = user.role    # Сохраняем роль пользователя
+
+            if session['role'] == 1:
+                return redirect('/admin_dashboard')
+            else:
+                return redirect('/dashboard')
+
+        return "Invalid username or password", 400
+
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    session.pop('role', None)
+    return redirect('/login')
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'role' not in session or session['role'] != 1:
+            return redirect(url_for('login'))  # Если пользователь не администратор, перенаправляем на страницу логина
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/flights')
 def get_flights():
@@ -44,6 +97,7 @@ def get_clients():
 
 
 @app.route('/add_client', methods=['POST'])
+@admin_required
 def add_client():
     id = request.form['id']
     name = request.form['name']
@@ -76,12 +130,14 @@ def add_client():
 
 
 @app.route('/delete_client/<int:client_id>', methods=['POST'])
+@admin_required
 def delete_client(client_id):
     client = Client.get(Client.id == client_id)
     client.delete_instance()
     return redirect('/clients')
 
 @app.route('/update_client/<int:client_id>', methods=['GET', 'POST'])
+@admin_required
 def update_client(client_id):
     client = Client.get(Client.id == client_id)  # Получаем клиента по ID
 
@@ -98,6 +154,7 @@ def update_client(client_id):
         return redirect('/clients')  # Перенаправляем на страницу со списком клиентов
 
 @app.route('/add_flight', methods=['POST'])
+@admin_required
 def add_flight():
     id = request.form['id']
     depature_point = request.form['depature_point']
@@ -116,12 +173,14 @@ def add_flight():
     return redirect('/flights')
 
 @app.route('/delete_flight/<int:flight_id>', methods=['POST'])
+@admin_required
 def delete_flight(flight_id):
     flight = Flight.get(Flight.id == flight_id)
     flight.delete_instance()
     return redirect('/flights')
 
 @app.route('/update_flight/<int:flight_id>', methods=['GET', 'POST'])
+@admin_required
 def update_flight(flight_id):
     flight = Flight.get(Flight.id == flight_id)
 
@@ -138,12 +197,14 @@ def update_flight(flight_id):
 
 
 @app.route('/delete_aviacompany/<int:aviacompany_id>', methods=['POST'])
+@admin_required
 def delete_aviacompany(aviacompany_id):
     company = Aviacompany.get(Aviacompany.id == aviacompany_id)
     company.delete_instance()
     return redirect('/aviacompanies')
 
 @app.route('/update_aviacompany/<int:aviacompany_id>', methods=['GET', 'POST'])
+@admin_required
 def update_aviacompany(aviacompany_id):
     company = Aviacompany.get(Aviacompany.id == aviacompany_id)
 
@@ -157,6 +218,7 @@ def update_aviacompany(aviacompany_id):
         return redirect('/aviacompanies')
 
 @app.route('/add_aviacompany', methods=['POST'])
+@admin_required
 def add_aviacompany():
     id = request.form['id']
     name = request.form['name']
@@ -172,6 +234,7 @@ def add_aviacompany():
     return redirect('/aviacompanies')
 
 @app.route('/add_ticket', methods=['POST'])
+@admin_required
 def add_ticket():
     id = request.form['id']
     cost = request.form['cost']
@@ -195,6 +258,7 @@ def add_ticket():
     return redirect('/tickets')
 
 @app.route('/update_ticket/<int:ticket_id>', methods=['GET', 'POST'])
+@admin_required
 def update_ticket(ticket_id):
     ticket = Ticket.get(Ticket.id == ticket_id)
 
@@ -213,12 +277,14 @@ def update_ticket(ticket_id):
         return redirect('/tickets')  # Перенаправляем на страницу со списком билетов
 
 @app.route('/delete_ticket/<int:ticket_id>', methods=['POST'])
+@admin_required
 def delete_ticket(ticket_id):
     ticket = Ticket.get(Ticket.id == ticket_id)
     ticket.delete_instance()  # Удаление билета
     return redirect('/tickets')
 
 @app.route('/add_airplane', methods=['POST'])
+@admin_required
 def add_airplane():
     # Получаем данные из формы
     id = request.form['id']
@@ -242,6 +308,7 @@ def add_airplane():
     return redirect('/airplanes')
 
 @app.route('/delete_airplane/<int:airplane_id>', methods=['POST'])
+@admin_required
 def delete_airplane(airplane_id):
     # Получаем самолет по ID
     airplane = Airplane.get(Airplane.id == airplane_id)
@@ -253,6 +320,7 @@ def delete_airplane(airplane_id):
     return redirect('/airplanes')
 
 @app.route('/update_airplane/<int:airplane_id>', methods=['GET', 'POST'])
+@admin_required
 def update_airplane(airplane_id):
     airplane = Airplane.get(Airplane.id == airplane_id)  # Получаем самолет по ID
 
@@ -269,3 +337,45 @@ def update_airplane(airplane_id):
 
         # Перенаправляем на страницу со всеми самолетами
         return redirect('/airplanes')
+
+@app.route('/dashboard')
+def dashboard():
+    if session['role'] == 2:  # Проверяем, что пользователь обычный
+        return render_template('dashboard.html')  # Страница для обычного пользователя
+    return redirect('/logout')  # Если пользователь не обычный, перенаправляем на страницу выхода
+
+@app.route('/admin_dashboard')
+def admin_dashboard():
+    if session['role'] == 1:  # Проверяем, что пользователь администратор
+        return render_template('admin_dashboard.html')  # Страница для админа
+    return redirect('/logout')  # Если пользователь не администратор, перенаправляем на страницу выхода
+
+@app.route('/flights_view')
+def get_flights_view():
+    flights = Flight.select()
+    return render_template("flights_view.html", flights=flights)
+
+
+@app.route('/aviacompanies_view')
+def get_aviacompanies_view():
+    aviacompanies = Aviacompany.select()
+    return render_template("aviacompanies_view.html", aviacompanies=aviacompanies)
+
+
+@app.route('/tickets_view')
+def get_tickets_view():
+    tickets = Ticket.select()
+    return render_template("tickets_view.html", tickets=tickets)
+
+
+@app.route('/airplanes_view')
+def get_airplanes_view():
+    airplanes = Airplane.select()
+    return render_template("airplanes_view.html", airplanes=airplanes)
+
+
+@app.route('/clients_view', methods=['GET'])
+def get_clients_view():
+    aviacompanies = Aviacompany.select()  # Получаем все авикомпании
+    clients = Client.select()  # Получаем всех клиентов
+    return render_template('client_view.html', client=clients, aviacompanies=aviacompanies)

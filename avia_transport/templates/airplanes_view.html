@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airplanes</title>
+</head>
+<body>
+    <h1>Airplanes</h1>
+
+    <!-- Таблица с самолетами -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Business Seats</th>
+                <th>Economy Seats</th>
+                <th>Luggage Capacity</th>
+                <th>Aviacompany ID</th>
+                <th>Flight ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for airplane in airplanes %}
+            <tr>
+                <td>{{ airplane.id }}</td>
+                <td>{{ airplane.business_seats }}</td>
+                <td>{{ airplane.econom_seats }}</td>
+                <td>{{ airplane.luggage_capacity }}</td>
+                <td>{{ airplane.aviacompany_id }}</td>
+                <td>{{ airplane.flight_id }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
