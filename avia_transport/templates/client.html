@@ -16,6 +16,7 @@
                 <th>Flight Hours</th>
                 <th>Luggage</th>
                 <th>Aviacompany ID</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -27,9 +28,42 @@
                 <td>{{ cl.flight_hours }}</td>
                 <td>{{ cl.luggage }}</td>
                 <td>{{ cl.aviacom_id.id }}</td>
+                <td>
+                    <!-- Button to delete a record -->
+                    <form action="/delete_client/{{ cl.id }}" method="POST" style="display:inline;">
+                        <button type="submit">Delete</button>
+                    </form>
+                    <!-- Button to update a record -->
+                    <form action="/update_client/{{ cl.id }}" method="GET" style="display:inline;">
+                        <button type="submit">Edit</button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <h2>Add New Client</h2>
+    <form action="/add_client" method="POST">
+        <label for="id">Client ID:</label>
+        <input type="number" name="id" id="id" placeholder="Client ID (optional)" min="1">
+
+        <label for="name">Name:</label>
+        <input type="text" name="name" id="name" required>
+
+        <label for="phone_number">Phone Number:</label>
+        <input type="text" name="phone_number" id="phone_number" required>
+
+        <label for="flight_hours">Flight Hours:</label>
+        <input type="number" name="flight_hours" id="flight_hours">
+
+        <label for="luggage">Luggage:</label>
+        <input type="number" name="luggage" id="luggage">
+
+        <label for="aviacompany_id">Aviacompany ID:</label>
+        <input type="number" name="aviacompany_id" id="aviacompany_id" required>
+
+        <button type="submit">Add</button>
+    </form>
 </body>
 </html>
