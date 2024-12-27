@@ -50,7 +50,8 @@ class Client(BaseModel):
 class Users(BaseModel):
     username = CharField(unique=True)
     password = CharField()
-    role = IntegerField(null=True)  # 1 - admin, 2 - user
+    role = IntegerField(null=True)
+    email = CharField(null=True)# 1 - admin, 2 - user
 
     def set_password(self, password):
         """Метод для установки пароля с хешированием"""
