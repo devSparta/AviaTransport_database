@@ -10,7 +10,7 @@
 
     <!-- Проверка, если пользователь авторизован -->
     {% if session['user_id'] %}
-        <p>Welcome, {{ session['username'] }}!</p>
+
         <p>Role: {% if session['role'] == 1 %} Admin {% else %} User {% endif %}</p>
 
         <!-- Ссылки для авторизованных пользователей -->

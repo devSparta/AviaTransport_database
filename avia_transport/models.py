@@ -1,5 +1,5 @@
 from peewee import *
-from config import db  # Предполагается, что db настроен в config.py
+from config import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
 class BaseModel(Model):

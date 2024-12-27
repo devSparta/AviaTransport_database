@@ -1,9 +1,20 @@
-from config import *
 from models import *
-from flask import Flask, render_template, request
-from peewee import DoesNotExist
+from flask import render_template, request
+
 from functools import wraps
 from flask import session, redirect, url_for
+from openpyxl import Workbook
+from flask import Response
+from models import Flight, Aviacompany, Ticket, Airplane, Client
+from config import app
+
+#сохранение в pdf
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from flask import Response
+from io import BytesIO
 
 @app.route('/')
 def index():
@@ -379,3 +390,221 @@ def get_clients_view():
     aviacompanies = Aviacompany.select()  # Получаем все авикомпании
     clients = Client.select()  # Получаем всех клиентов
     return render_template('client_view.html', client=clients, aviacompanies=aviacompanies)
+
+@app.route('/export/xlsx')
+@admin_required
+def export_xlsx():
+    # Создаем рабочую книгу
+    wb = Workbook()
+
+    # Экспортируем данные из модели Flight
+    ws_flight = wb.active
+    ws_flight.title = "Flights"
+    ws_flight.append(['ID', 'Departure Point', 'Arrival Point', 'Departure Time', 'Arrival Time'])
+
+    flights = Flight.select()
+    for flight in flights:
+        ws_flight.append(
+            [flight.id, flight.depature_point, flight.arrival_point, flight.depature_time, flight.arrival_time])
+
+    # Экспортируем данные из модели Aviacompany
+    ws_aviacompany = wb.create_sheet(title="Aviacompanies")
+    ws_aviacompany.append(['ID', 'Name', 'Planes Amount'])
+
+    aviacompanies = Aviacompany.select()
+    for aviacompany in aviacompanies:
+        ws_aviacompany.append([aviacompany.id, aviacompany.name, aviacompany.planes_amount])
+
+    # Экспортируем данные из модели Ticket
+    ws_ticket = wb.create_sheet(title="Tickets")
+    ws_ticket.append(['ID', 'Cost', 'Landing Class', 'Flight ID'])
+
+    tickets = Ticket.select()
+    for ticket in tickets:
+        # Используем ID из связи, а не сам объект
+        ws_ticket.append([ticket.id, ticket.cost, ticket.landing_class, ticket.flight_id.id])
+
+    # Экспортируем данные из модели Airplane
+    ws_airplane = wb.create_sheet(title="Airplanes")
+    ws_airplane.append(['ID', 'Business Seats', 'Econom Seats', 'Luggage Capacity', 'Aviacompany ID', 'Flight ID'])
+
+    airplanes = Airplane.select()
+    for airplane in airplanes:
+        # Используем ID авиакомпании, а не сам объект
+        ws_airplane.append([airplane.id, airplane.business_seats, airplane.econom_seats, airplane.luggage_capacity,
+                            airplane.aviacompany_id.id, airplane.flight_id.id])  # Здесь исправление
+
+    # Экспортируем данные из модели Client
+    ws_client = wb.create_sheet(title="Clients")
+    ws_client.append(['ID', 'Name', 'Phone Number', 'Flight Hours', 'Luggage', 'Aviacompany ID'])
+
+    clients = Client.select()
+    for client in clients:
+        ws_client.append(
+            [client.id, client.name, client.phone_number, client.flight_hours, client.luggage, client.aviacom_id.id])  # Здесь исправление
+
+    # Экспортируем данные из модели Users
+    ws_users = wb.create_sheet(title="Users")
+    ws_users.append(['ID', 'Username', 'Password', 'Role'])
+
+    users = Users.select()
+    for user in users:
+        ws_users.append([user.id, user.username, user.password, user.role])
+
+    # Создаем временный файл
+    from io import BytesIO
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    # Отправляем файл как ответ
+    return Response(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    headers={"Content-Disposition": "attachment;filename=database_export.xlsx"})
+
+
+@app.route('/export/pdf')
+@admin_required
+def export_pdf():
+    # Создаем векторный поток для временного хранения PDF
+    buffer = BytesIO()
+
+    # Создаем объект документа
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+
+    # Получаем стандартные стили для текста
+    styles = getSampleStyleSheet()
+
+    # Контент PDF
+    content = []
+
+    # Функция для добавления заголовка
+    def add_table_title(title):
+        paragraph = Paragraph(title, styles['Heading2'])
+        content.append(paragraph)
+
+    # Экспортируем данные из модели Flight
+    flights = Flight.select()
+    flight_data = [['ID', 'Departure Point', 'Arrival Point', 'Departure Time', 'Arrival Time']]
+    for flight in flights:
+        flight_data.append(
+            [flight.id, flight.depature_point, flight.arrival_point, flight.depature_time, flight.arrival_time])
+
+    add_table_title("Flight Data")
+    flight_table = Table(flight_data)
+    flight_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    content.append(flight_table)
+
+    # Экспортируем данные из модели Aviacompany
+    aviacompanies = Aviacompany.select()
+    aviacompany_data = [['ID', 'Name', 'Planes Amount']]
+    for aviacompany in aviacompanies:
+        aviacompany_data.append([aviacompany.id, aviacompany.name, aviacompany.planes_amount])
+
+    add_table_title("Aviacompany Data")
+    aviacompany_table = Table(aviacompany_data)
+    aviacompany_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    content.append(aviacompany_table)
+
+    # Экспортируем данные из модели Ticket
+    tickets = Ticket.select()
+    ticket_data = [['ID', 'Cost', 'Landing Class', 'Flight ID']]
+    for ticket in tickets:
+        ticket_data.append([ticket.id, ticket.cost, ticket.landing_class, ticket.flight_id.id])
+
+    add_table_title("Ticket Data")
+    ticket_table = Table(ticket_data)
+    ticket_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    content.append(ticket_table)
+
+    # Экспортируем данные из модели Airplane
+    airplanes = Airplane.select()
+    airplane_data = [['ID', 'Business Seats', 'Econom Seats', 'Luggage Capacity', 'Aviacompany ID', 'Flight ID']]
+    for airplane in airplanes:
+        airplane_data.append([airplane.id, airplane.business_seats, airplane.econom_seats, airplane.luggage_capacity,
+                              airplane.aviacompany_id.id, airplane.flight_id.id])
+
+    add_table_title("Airplane Data")
+    airplane_table = Table(airplane_data)
+    airplane_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    content.append(airplane_table)
+
+    # Экспортируем данные из модели Client
+    clients = Client.select()
+    client_data = [['ID', 'Name', 'Phone Number', 'Flight Hours', 'Luggage', 'Aviacompany ID']]
+    for client in clients:
+        client_data.append(
+            [client.id, client.name, client.phone_number, client.flight_hours, client.luggage, client.aviacom_id.id])
+
+    add_table_title("Client Data")
+    client_table = Table(client_data)
+    client_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    content.append(client_table)
+
+    # Экспортируем данные из модели Users (с обрезанием паролей)
+    users = Users.select()
+    user_data = [['ID', 'Username', 'Password (Shortened)', 'Role']]
+    for user in users:
+        # Обрезаем хэшированный пароль до 20 символов
+        shortened_password = user.password[:20] + "..." if len(user.password) > 20 else user.password
+        user_data.append([user.id, user.username, shortened_password, user.role])
+
+    add_table_title("Users Data")
+    user_table = Table(user_data)
+    user_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    content.append(user_table)
+
+    # Собираем документ
+    doc.build(content)
+
+    # Отправляем PDF как ответ
+    buffer.seek(0)
+    return Response(buffer, mimetype='application/pdf',
+                    headers={"Content-Disposition": "attachment;filename=database_export.pdf"})
