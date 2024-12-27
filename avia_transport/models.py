@@ -42,8 +42,8 @@ class Client(BaseModel):
 
     class Meta:
         constraints = [
-            Check('substr(phone_number, 1, 2) = "+7"'),  # Номер должен начинаться с "+7"
-            Check('right(phone_number, 10) ~ \'^[0-9]+$\''),  # Последние 10 символов должны быть цифрами
+            Check('substr(phone_number, 1, 2) = "+7"'),
+            Check('right(phone_number, 10) ~ \'^[0-9]+$\''),
         ]
 
 # Модель пользователя
@@ -54,9 +54,7 @@ class Users(BaseModel):
     email = CharField(null=True)# 1 - admin, 2 - user
 
     def set_password(self, password):
-        """Метод для установки пароля с хешированием"""
         self.password = generate_password_hash(password)
 
     def check_password(self, password):
-        """Метод для проверки пароля"""
         return check_password_hash(self.password, password)

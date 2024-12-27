@@ -8,12 +8,10 @@
 <body>
     <h1>Welcome to the System</h1>
 
-    <!-- Проверка, если пользователь авторизован -->
     {% if session['user_id'] %}
 
         <p>Role: {% if session['role'] == 1 %} Admin {% else %} User {% endif %}</p>
 
-        <!-- Ссылки для авторизованных пользователей -->
         <ul>
             <li><a href="/dashboard">Dashboard</a></li>
             {% if session['role'] == 1 %}
@@ -23,7 +21,6 @@
         </ul>
 
     {% else %}
-        <!-- Ссылки для неавторизованных пользователей -->
         <p><a href="/login">Login</a></p>
         <p><a href="/register">Register</a></p>
     {% endif %}
